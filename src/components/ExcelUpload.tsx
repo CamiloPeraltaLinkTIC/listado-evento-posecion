@@ -3,19 +3,29 @@
 import { useCallback, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { FileSpreadsheet, Loader2, UploadCloud } from "lucide-react";
-import { cn, normalizeCedula } from "@/lib/utils";
-import type { AttendeeUpsert } from "@/lib/types";
+import { cn, fold, normalizeCedula } from "@/lib/utils";
+import type { AttendeeUpsert, ImportStats } from "@/lib/types";
 
 interface Props {
-  onUpload: (rows: AttendeeUpsert[]) => Promise<void>;
+  onUpload: (rows: AttendeeUpsert[], stats: ImportStats) => Promise<void>;
 }
 
-/** Encuentra el valor de una fila buscando llaves por nombre aproximado. */
-function pick(row: Record<string, unknown>, keys: string[]): string {
-  for (const rawKey of Object.keys(row)) {
-    const norm = rawKey.toLowerCase().trim();
-    if (keys.some((k) => norm.includes(k))) {
-      return String(row[rawKey] ?? "").trim();
+/**
+ * Encuentra el valor de una columna por nombre aproximado.
+ * Primero busca coincidencia exacta (sin tildes ni mayúsculas) y solo
+ * después una coincidencia parcial, para evitar falsos positivos como
+ * que "Entidad" (contiene "id") se tome por la columna de cédula.
+ */
+function pick(row: Record<string, unknown>, aliases: string[]): string {
+  const cols = Object.keys(row).map((k) => [k, fold(k)] as const);
+
+  for (const [orig, norm] of cols) {
+    if (aliases.includes(norm)) return String(row[orig] ?? "").trim();
+  }
+  for (const [orig, norm] of cols) {
+    // Solo alias suficientemente largos para evitar coincidencias espurias.
+    if (aliases.some((a) => a.length >= 5 && norm.includes(a))) {
+      return String(row[orig] ?? "").trim();
     }
   }
   return "";
@@ -41,34 +51,51 @@ export default function ExcelUpload({ onUpload }: Props) {
 
         const seen = new Set<string>();
         const rows: AttendeeUpsert[] = [];
+        let omitidos = 0;
+        let duplicados = 0;
 
         for (const raw of json) {
+          // Ignora filas completamente vacías (no cuentan como omitidas).
+          const tieneAlgo = Object.values(raw).some(
+            (v) => String(v ?? "").trim() !== ""
+          );
+          if (!tieneAlgo) continue;
+
           const cedula = normalizeCedula(
-            pick(raw, ["cedula", "cédula", "documento", "identificacion", "id"])
+            pick(raw, ["cedula", "cc", "documento", "identificacion"])
           );
           const nombre = pick(raw, ["nombre", "name", "apellido", "asistente"]);
           const entidad = pick(raw, [
             "entidad",
             "empresa",
             "organizacion",
-            "organización",
             "institucion",
-            "institución",
           ]);
-          if (!cedula || !nombre) continue;
-          if (seen.has(cedula)) continue;
+
+          if (!cedula || !nombre) {
+            omitidos++;
+            continue;
+          }
+          if (seen.has(cedula)) {
+            duplicados++;
+            continue;
+          }
           seen.add(cedula);
           rows.push({ cedula, nombre, entidad: entidad || null });
         }
 
         if (rows.length === 0) {
           setError(
-            "No se encontraron columnas 'Cédula' y 'Nombre' con datos válidos."
+            "No se encontraron filas válidas. Verifica que el archivo tenga las columnas 'Cédula' y 'Nombre' con datos."
           );
           return;
         }
 
-        await onUpload(rows);
+        await onUpload(rows, {
+          validos: rows.length,
+          omitidos,
+          duplicados,
+        });
       } catch (err) {
         console.error(err);
         setError("No se pudo procesar el archivo. ¿Es un .xlsx válido?");

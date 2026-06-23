@@ -6,7 +6,7 @@ import Image from "next/image";
 import { LogOut, Upload, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { normalizeCedula } from "@/lib/utils";
-import type { Attendee, AttendeeUpsert } from "@/lib/types";
+import type { Attendee, AttendeeUpsert, ImportStats } from "@/lib/types";
 import StatsBar from "./StatsBar";
 import AttendeeList from "./AttendeeList";
 import AddAttendeesModal from "./AddAttendeesModal";
@@ -162,17 +162,45 @@ export default function Dashboard() {
 
   // --- Subida masiva desde Excel (upsert) ---
   const handleUpload = useCallback(
-    async (rows: AttendeeUpsert[]) => {
-      const { error } = await supabase
-        .from("attendees")
-        .upsert(rows, { onConflict: "cedula", ignoreDuplicates: false });
+    async (rows: AttendeeUpsert[], stats: ImportStats) => {
+      // Carga por lotes: evita que un archivo grande falle en una sola
+      // petición (timeouts / límites del servidor) y permite subir miles
+      // de registros de forma confiable.
+      const CHUNK = 500;
+      let cargados = 0;
 
-      if (error) {
-        notify("Error al subir: " + error.message, "error");
-        throw error;
+      for (let i = 0; i < rows.length; i += CHUNK) {
+        const lote = rows.slice(i, i + CHUNK);
+        const { error } = await supabase
+          .from("attendees")
+          .upsert(lote, { onConflict: "cedula", ignoreDuplicates: false });
+
+        if (error) {
+          // Refresca para mostrar lo que sí alcanzó a entrar antes del fallo.
+          await fetchAttendees();
+          notify(
+            `Se cargaron ${cargados} de ${rows.length}. Error en el resto: ${error.message}`,
+            "error"
+          );
+          throw error;
+        }
+        cargados += lote.length;
       }
+
       await fetchAttendees();
-      notify(`${rows.length} asistentes cargados/actualizados`, "success");
+
+      // Reporta también lo que no entró, para que la carga sea verificable.
+      const extras: string[] = [];
+      if (stats.duplicados > 0)
+        extras.push(`${stats.duplicados} duplicadas en el archivo`);
+      if (stats.omitidos > 0)
+        extras.push(`${stats.omitidos} sin cédula/nombre`);
+      const detalle = extras.length ? ` (${extras.join(", ")})` : "";
+
+      notify(
+        `${cargados} asistentes cargados/actualizados${detalle}`,
+        extras.length ? "info" : "success"
+      );
     },
     [fetchAttendees, notify]
   );

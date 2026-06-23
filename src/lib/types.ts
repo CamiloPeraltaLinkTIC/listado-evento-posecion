@@ -16,3 +16,10 @@ export interface AttendeeUpsert {
 }
 
 export type StatusFilter = "all" | "attended" | "pending";
+
+/** Resumen de una importación desde Excel. */
+export interface ImportStats {
+  validos: number;
+  omitidos: number; // filas con datos pero sin cédula o nombre
+  duplicados: number; // cédulas repetidas dentro del mismo archivo
+}

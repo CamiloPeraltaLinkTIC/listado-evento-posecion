@@ -1,20 +1,20 @@
 "use client";
 
 import { FileUp, X } from "lucide-react";
-import type { AttendeeUpsert } from "@/lib/types";
+import type { AttendeeUpsert, ImportStats } from "@/lib/types";
 import ExcelUpload from "./ExcelUpload";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onUpload: (rows: AttendeeUpsert[]) => Promise<void>;
+  onUpload: (rows: AttendeeUpsert[], stats: ImportStats) => Promise<void>;
 }
 
 export default function AddAttendeesModal({ open, onClose, onUpload }: Props) {
   if (!open) return null;
 
-  async function handleImport(rows: AttendeeUpsert[]) {
-    await onUpload(rows);
+  async function handleImport(rows: AttendeeUpsert[], stats: ImportStats) {
+    await onUpload(rows, stats);
     onClose();
   }
 
