@@ -9,14 +9,12 @@ import {
   Clock,
   Download,
   Loader2,
-  Printer,
   RotateCcw,
   Search,
   UserPlus,
   Users2,
 } from "lucide-react";
 import { cn, fold, normalizeCedula } from "@/lib/utils";
-import { printTicket } from "@/lib/printTicket";
 import type { Attendee, StatusFilter } from "@/lib/types";
 
 interface Props {
@@ -202,16 +200,6 @@ export default function AttendeeList({
                       <Check className="h-3.5 w-3.5" />
                       Asistió
                     </span>
-                    <button
-                      onClick={() =>
-                        printTicket({ nombre: a.nombre, cedula: a.cedula })
-                      }
-                      title="Reimprimir tiquete"
-                      aria-label={`Reimprimir tiquete de ${a.nombre}`}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-card text-ink-faint transition hover:border-brand-500 hover:text-brand-300 active:scale-95"
-                    >
-                      <Printer className="h-4 w-4" />
-                    </button>
                     <button
                       onClick={() => onRevert(a)}
                       disabled={isConfirming}

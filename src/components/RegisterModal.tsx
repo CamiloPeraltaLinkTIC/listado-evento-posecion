@@ -118,7 +118,7 @@ export default function RegisterModal({
             )}
 
             <p className="text-xs text-ink-faint">
-              Se marcará como asistido y se imprimirá su tiquete.
+              Se marcará como asistido.
             </p>
 
             <button

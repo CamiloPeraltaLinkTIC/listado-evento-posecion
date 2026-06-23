@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { LogOut, Upload, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { printTicket } from "@/lib/printTicket";
 import { normalizeCedula } from "@/lib/utils";
 import type { Attendee, AttendeeUpsert } from "@/lib/types";
 import StatsBar from "./StatsBar";
@@ -118,7 +117,6 @@ export default function Dashboard() {
         return;
       }
       notify(`✓ ${attendee.nombre} confirmado`, "success");
-      printTicket({ nombre: attendee.nombre, cedula: attendee.cedula });
     },
     [notify]
   );
@@ -199,7 +197,6 @@ export default function Dashboard() {
       }
       await fetchAttendees();
       notify(`${nombre} registrado y marcado como asistido`, "success");
-      printTicket({ nombre, cedula });
     },
     [fetchAttendees, notify]
   );
