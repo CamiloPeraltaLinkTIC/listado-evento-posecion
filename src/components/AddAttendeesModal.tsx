@@ -53,9 +53,10 @@ export default function AddAttendeesModal({ open, onClose, onUpload }: Props) {
         <div className="px-6 py-6">
           <p className="mb-4 text-sm text-ink-soft">
             Sube un archivo con las columnas{" "}
-            <span className="font-mono text-xs text-ink">Cédula</span> y{" "}
-            <span className="font-mono text-xs text-ink">Nombre</span>. Los
-            duplicados por cédula se actualizan automáticamente.
+            <span className="font-mono text-xs text-ink">Cédula</span>,{" "}
+            <span className="font-mono text-xs text-ink">Nombre</span> y{" "}
+            <span className="font-mono text-xs text-ink">Entidad</span>{" "}
+            (opcional). Los duplicados por cédula se actualizan automáticamente.
           </p>
           <ExcelUpload onUpload={handleImport} />
         </div>

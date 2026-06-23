@@ -47,10 +47,18 @@ export default function ExcelUpload({ onUpload }: Props) {
             pick(raw, ["cedula", "cédula", "documento", "identificacion", "id"])
           );
           const nombre = pick(raw, ["nombre", "name", "apellido", "asistente"]);
+          const entidad = pick(raw, [
+            "entidad",
+            "empresa",
+            "organizacion",
+            "organización",
+            "institucion",
+            "institución",
+          ]);
           if (!cedula || !nombre) continue;
           if (seen.has(cedula)) continue;
           seen.add(cedula);
-          rows.push({ cedula, nombre });
+          rows.push({ cedula, nombre, entidad: entidad || null });
         }
 
         if (rows.length === 0) {
@@ -114,7 +122,7 @@ export default function ExcelUpload({ onUpload }: Props) {
         </p>
         <p className="mt-3 flex items-center gap-1.5 text-[11px] text-ink-faint">
           <FileSpreadsheet className="h-3.5 w-3.5" />
-          Columnas: Cédula y Nombre · .xlsx / .xls
+          Columnas: Cédula, Nombre y Entidad · .xlsx / .xls
         </p>
 
         <input

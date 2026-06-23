@@ -2,6 +2,7 @@ export interface Attendee {
   id: string;
   cedula: string;
   nombre: string;
+  entidad: string | null;
   has_attended: boolean;
   arrival_time: string | null;
   created_at: string;
@@ -11,6 +12,7 @@ export interface Attendee {
 export interface AttendeeUpsert {
   cedula: string;
   nombre: string;
+  entidad?: string | null;
 }
 
 export type StatusFilter = "all" | "attended" | "pending";

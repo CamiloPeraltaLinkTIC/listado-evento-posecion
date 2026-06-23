@@ -54,12 +54,12 @@ export default function AttendeeList({
       if (filter === "pending" && a.has_attended) return false;
       if (!raw) return true;
 
-      const nombre = fold(a.nombre);
-      const matchNombre =
-        tokens.length > 0 && tokens.every((t) => nombre.includes(t));
+      const haystack = fold(`${a.nombre} ${a.entidad ?? ""}`);
+      const matchTexto =
+        tokens.length > 0 && tokens.every((t) => haystack.includes(t));
       const matchCedula =
         qCedula.length > 0 && normalizeCedula(a.cedula).includes(qCedula);
-      return matchNombre || matchCedula;
+      return matchTexto || matchCedula;
     });
   }, [attendees, query, filter]);
 
@@ -67,13 +67,20 @@ export default function AttendeeList({
     const rows = attendees.map((a) => ({
       Cédula: a.cedula,
       Nombre: a.nombre,
+      Entidad: a.entidad ?? "",
       Asistió: a.has_attended ? "Sí" : "No",
       "Hora de llegada": a.arrival_time
         ? format(new Date(a.arrival_time), "yyyy-MM-dd HH:mm", { locale: es })
         : "",
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
-    ws["!cols"] = [{ wch: 16 }, { wch: 32 }, { wch: 10 }, { wch: 20 }];
+    ws["!cols"] = [
+      { wch: 16 },
+      { wch: 32 },
+      { wch: 28 },
+      { wch: 10 },
+      { wch: 20 },
+    ];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Asistencia");
     const stamp = format(new Date(), "yyyy-MM-dd_HHmm");
@@ -110,7 +117,7 @@ export default function AttendeeList({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por cédula o nombre…"
+            placeholder="Buscar por cédula, nombre o entidad…"
             className="w-full rounded-lg border border-line bg-paper/50 py-2.5 pl-10 pr-4 text-sm text-ink outline-none transition placeholder:text-ink-faint focus:border-ink focus:bg-card"
           />
         </div>
@@ -183,8 +190,9 @@ export default function AttendeeList({
 
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-ink">{a.nombre}</p>
-                  <p className="font-mono text-xs text-ink-faint">
+                  <p className="truncate font-mono text-xs text-ink-faint">
                     CC {a.cedula}
+                    {a.entidad ? ` · ${a.entidad}` : ""}
                   </p>
                 </div>
 

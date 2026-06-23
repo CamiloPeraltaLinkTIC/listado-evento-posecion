@@ -7,7 +7,11 @@ import { normalizeCedula } from "@/lib/utils";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onRegister: (cedula: string, nombre: string) => Promise<void>;
+  onRegister: (
+    cedula: string,
+    nombre: string,
+    entidad: string
+  ) => Promise<void>;
   initialCedula?: string;
   initialNombre?: string;
 }
@@ -21,6 +25,7 @@ export default function RegisterModal({
 }: Props) {
   const [cedula, setCedula] = useState(initialCedula);
   const [nombre, setNombre] = useState(initialNombre);
+  const [entidad, setEntidad] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -29,6 +34,7 @@ export default function RegisterModal({
     if (open) {
       setCedula(initialCedula);
       setNombre(initialNombre);
+      setEntidad("");
       setError("");
     }
   }, [open, initialCedula, initialNombre]);
@@ -45,7 +51,7 @@ export default function RegisterModal({
     }
     setSaving(true);
     try {
-      await onRegister(ced, nombre.trim());
+      await onRegister(ced, nombre.trim(), entidad.trim());
       onClose();
     } catch (err) {
       setError(
@@ -107,6 +113,17 @@ export default function RegisterModal({
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="María Gómez"
+                className="w-full rounded-lg border border-line bg-paper/50 px-4 py-2.5 text-ink outline-none transition placeholder:text-ink-faint focus:border-brand-500 focus:bg-card"
+              />
+            </div>
+            <div>
+              <label className="eyebrow mb-1.5 block">
+                Entidad <span className="text-ink-faint">(opcional)</span>
+              </label>
+              <input
+                value={entidad}
+                onChange={(e) => setEntidad(e.target.value)}
+                placeholder="Consejo Nacional Electoral"
                 className="w-full rounded-lg border border-line bg-paper/50 px-4 py-2.5 text-ink outline-none transition placeholder:text-ink-faint focus:border-brand-500 focus:bg-card"
               />
             </div>

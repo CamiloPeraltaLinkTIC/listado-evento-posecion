@@ -9,10 +9,14 @@ create table if not exists public.attendees (
   id            uuid primary key default gen_random_uuid(),
   cedula        text not null unique,
   nombre        text not null,
+  entidad       text,
   has_attended  boolean not null default false,
   arrival_time  timestamptz,
   created_at    timestamptz not null default now()
 );
+
+-- Para bases de datos ya existentes: agrega la columna si aún no existe.
+alter table public.attendees add column if not exists entidad text;
 
 -- Índices para acelerar la búsqueda reactiva por cédula y nombre.
 create index if not exists attendees_cedula_idx on public.attendees (cedula);

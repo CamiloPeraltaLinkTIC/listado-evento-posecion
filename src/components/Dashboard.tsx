@@ -179,10 +179,11 @@ export default function Dashboard() {
 
   // --- Registro en sitio: crea a la persona y la marca como asistida ---
   const handleRegister = useCallback(
-    async (cedula: string, nombre: string) => {
+    async (cedula: string, nombre: string, entidad: string) => {
       const { error } = await supabase.from("attendees").insert({
         cedula,
         nombre,
+        entidad: entidad || null,
         has_attended: true,
         arrival_time: new Date().toISOString(),
       });
