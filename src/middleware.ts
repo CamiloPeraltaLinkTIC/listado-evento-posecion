@@ -22,10 +22,14 @@ export function middleware(request: NextRequest) {
 export const config = {
   /**
    * Protege todas las rutas excepto: login, las rutas de API de auth,
-   * los assets de Next.js, el favicon y cualquier archivo estático
-   * (rutas con extensión, p. ej. /cne-logo.png, /icon.png).
+   * los enlaces de invitación por token (/i/... y /api/invite/...), los
+   * assets de Next.js, el favicon y cualquier archivo estático (rutas con
+   * extensión, p. ej. /cne-logo.png, /icon.png).
+   *
+   * Los enlaces de invitación se autorizan por su propio token, no con la
+   * cookie de admin, por eso quedan fuera de este middleware.
    */
   matcher: [
-    "/((?!login|api/auth|_next/static|_next/image|favicon.ico|.*\\..*).*)",
+    "/((?!login|api/auth|api/invite|i/|_next/static|_next/image|favicon.ico|.*\\..*).*)",
   ],
 };

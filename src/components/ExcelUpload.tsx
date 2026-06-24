@@ -98,7 +98,11 @@ export default function ExcelUpload({ onUpload }: Props) {
         });
       } catch (err) {
         console.error(err);
-        setError("No se pudo procesar el archivo. ¿Es un .xlsx válido?");
+        setError(
+          err instanceof Error && err.message
+            ? err.message
+            : "No se pudo procesar el archivo. ¿Es un .xlsx válido?"
+        );
       } finally {
         setBusy(false);
         if (inputRef.current) inputRef.current.value = "";

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { LogOut, Upload, UserPlus } from "lucide-react";
+import { Building2, LogOut, Upload, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { normalizeCedula } from "@/lib/utils";
 import type { Attendee, AttendeeUpsert, ImportStats } from "@/lib/types";
@@ -11,6 +11,7 @@ import StatsBar from "./StatsBar";
 import AttendeeList from "./AttendeeList";
 import AddAttendeesModal from "./AddAttendeesModal";
 import RegisterModal from "./RegisterModal";
+import EntitiesModal from "./EntitiesModal";
 import Toast, { type ToastState } from "./Toast";
 
 export default function Dashboard() {
@@ -19,6 +20,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [showEntities, setShowEntities] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [prefill, setPrefill] = useState({ cedula: "", nombre: "" });
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -296,6 +298,13 @@ export default function Dashboard() {
         <h2 className="eyebrow">Estado de la jornada</h2>
         <div className="flex shrink-0 items-center gap-2">
           <button
+            onClick={() => setShowEntities(true)}
+            className="flex items-center gap-2 rounded-lg border border-line bg-card px-4 py-2.5 text-sm font-semibold text-ink-soft transition hover:border-brand-500 hover:text-ink active:scale-[0.98]"
+          >
+            <Building2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Entidades</span>
+          </button>
+          <button
             onClick={() => setShowAdd(true)}
             className="flex items-center gap-2 rounded-lg border border-line bg-card px-4 py-2.5 text-sm font-semibold text-ink-soft transition hover:border-brand-500 hover:text-ink active:scale-[0.98]"
           >
@@ -329,6 +338,12 @@ export default function Dashboard() {
         open={showAdd}
         onClose={() => setShowAdd(false)}
         onUpload={handleUpload}
+      />
+
+      <EntitiesModal
+        open={showEntities}
+        onClose={() => setShowEntities(false)}
+        onNotify={notify}
       />
 
       <RegisterModal
