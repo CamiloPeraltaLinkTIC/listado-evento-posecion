@@ -35,6 +35,42 @@ export async function findEntityByToken(token: string): Promise<Entity | null> {
   return data as Entity;
 }
 
+/**
+ * Vincula a una entidad los asistentes YA cargados cuyo texto `entidad`
+ * coincide con el nombre dado (sin distinguir mayúsculas ni espacios).
+ * Solo toca los que aún no tienen entidad. Devuelve cuántos se vincularon.
+ */
+export async function linkExistingByName(
+  entityId: string,
+  nombre: string
+): Promise<number> {
+  const target = nombre.trim().toLowerCase();
+  if (!target) return 0;
+
+  const { data, error } = await supabaseAdmin
+    .from("attendees")
+    .select("id, entidad")
+    .is("entity_id", null)
+    .not("entidad", "is", null);
+
+  if (error || !data) return 0;
+
+  const ids = (data as { id: string; entidad: string | null }[])
+    .filter((r) => String(r.entidad ?? "").trim().toLowerCase() === target)
+    .map((r) => r.id);
+
+  let linked = 0;
+  for (let i = 0; i < ids.length; i += 300) {
+    const lote = ids.slice(i, i + 300);
+    const { error: upErr } = await supabaseAdmin
+      .from("attendees")
+      .update({ entity_id: entityId, entidad: nombre })
+      .in("id", lote);
+    if (!upErr) linked += lote.length;
+  }
+  return linked;
+}
+
 /** Cuántos puestos lleva ocupados una entidad (asistentes vinculados). */
 export async function countUsed(entityId: string): Promise<number> {
   const { count, error } = await supabaseAdmin

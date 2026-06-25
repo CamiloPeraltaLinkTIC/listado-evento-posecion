@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { supabaseAdmin, hasServiceRole } from "@/lib/supabaseAdmin";
+import { linkExistingByName } from "@/lib/invite";
 import type { Entity, EntityWithUsage } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -110,5 +111,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ entity: { ...(data as Entity), used: 0 } });
+  const entity = data as Entity;
+
+  // Vincula de una vez a los asistentes ya cargados con este mismo nombre.
+  const vinculados = await linkExistingByName(entity.id, entity.nombre);
+
+  return NextResponse.json({
+    entity: { ...entity, used: vinculados },
+    vinculados,
+  });
 }

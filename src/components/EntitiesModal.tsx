@@ -86,7 +86,13 @@ export default function EntitiesModal({ open, onClose, onNotify }: Props) {
       setNombre("");
       setCupo("");
       await fetchEntities();
-      onNotify(`Entidad "${data.entity.nombre}" creada`, "success");
+      const vinc = Number(data?.vinculados ?? 0);
+      onNotify(
+        vinc > 0
+          ? `Entidad "${data.entity.nombre}" creada · ${vinc} asistente(s) ya cargados vinculados`
+          : `Entidad "${data.entity.nombre}" creada`,
+        vinc > 0 ? "info" : "success"
+      );
     } finally {
       setSaving(false);
     }
